@@ -20,9 +20,24 @@ plug.setup({
 	--      -- See plug.sample.init.lua for an example plugin
 	-- 			print(require("plug.sample.init").loaded)
 	-- 		end,
+	-- 		enabled = false, -- Optional, set to true to enable the plugin
+	-- 		dependencies = {
+	--      -- Optional, list of plugin specs that this plugin depends on
+	-- 		}
+	-- 		update_on_load = false, -- Optional, set to true to update the plugin on load
 	-- 	},
 	-- },
 })
+
+-- Update plugin with name "<name>"
+-- Returns true if successful, false otherwise.
+-- You can set it to a keybind through waywall.
+local success = plug.update({ name = "<name>" })
+
+-- Update all plugins
+-- Returns true if successful, false otherwise.
+-- You can also set it to a keybind through waywall.
+local success_all = plug.update_all()
 
 -- Rest of config from here
 local config = {

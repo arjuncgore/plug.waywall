@@ -10,22 +10,58 @@ function M.load_from_spec(spec)
 		return "load spec: failed to load plugin: url not provided"
 	end
 
-	--- @type PluginSpec
-	local pspec = types.PluginSpec.new(spec.url, spec.name, spec.config)
-
-	local success, err = pspec:load()
-	if not success then
+	--- @type PluginSpec | nil, string | nil
+	local pspec, err = types.PluginSpec.new(spec.url, spec.name, spec.config, spec.enabled)
+	if not pspec then
 		return "load spec: failed to load plugin: " .. err
+	end
+
+	local deps = spec.dependencies
+	if deps then
+		for _, dep in ipairs(deps) do
+			local err2 = M.load_from_spec(dep)
+			if err2 then
+				return "load spec: failed to load plugin dependency: " .. err2
+			end
+		end
+	end
+
+	local success1, err1 = pspec:load()
+	if not success1 then
+		return "load spec: failed to load plugin: " .. err1
+	end
+
+	if spec.update_on_load then
+		local success2, err2 = pspec:update()
+		if not success2 then
+			return "load spec: failed to update plugin: " .. err2
+		end
 	end
 
 	local plugin = utils.Prequire("plug." .. pspec.name .. ".init")
 	if not plugin then
 		return "load plugin: failed to load plugin init"
 	end
+
 	if pspec.config then
 		pspec.config()
 	end
 	return nil
+end
+
+--- @param name string
+--- @return boolean, string | nil
+function M.update_from_name(name)
+	-- Dummy plugin spec
+	local pspec, err = types.PluginSpec.new("", name, nil, true)
+	if not pspec then
+		return false, "failed to create plugin spec: " .. err
+	end
+	local success, err2 = pspec:update()
+	if not success then
+		return false, "failed to update plugin: " .. err2
+	end
+	return true, nil
 end
 
 return M

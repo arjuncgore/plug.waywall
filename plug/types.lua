@@ -6,17 +6,19 @@ local M = {}
 --- @field url string
 --- @field name string | nil
 --- @field config fun() | nil
+--- @field enabled boolean
 local PluginSpec = {}
 
 --- @param url string
 --- @param name string | nil
 --- @param config fun() | nil
-function PluginSpec.new(url, name, config)
+--- @param enabled boolean | nil
+--- @return PluginSpec | nil, string | nil
+function PluginSpec.new(url, name, config, enabled)
 	if not name then
 		local start = url:match(".*/()")
 		if not start then
-			Log:error("PluginSpec: failed to parse url")
-			return nil
+			return nil, "failed to parse url for name"
 		end
 		name = url:sub(start)
 		Log:debug("PluginSpec: name not provided, using " .. name)
@@ -25,11 +27,20 @@ function PluginSpec.new(url, name, config)
 	self.url = url
 	self.name = name
 	self.config = config
-	return self
+	self.enabled = (function()
+		if enabled == nil then
+			return true
+		end
+		return enabled
+	end)()
+	return self, nil
 end
 
 --- @return boolean, string | nil
 function PluginSpec:load()
+	if not self.enabled then
+		return true, nil
+	end
 	local store_path = globals.PLUG_CONFIG_DIR .. self.name
 	local file, err = io.open(store_path .. "/.check_temp", "w")
 	if not file and err then
@@ -54,10 +65,32 @@ function PluginSpec:load()
 	return true, nil
 end
 
+--- @return boolean, string | nil
+function PluginSpec:update()
+	local store_path = globals.PLUG_CONFIG_DIR .. self.name
+	local file, err = io.open(store_path .. "/.check_temp", "w")
+	if not file and err then
+		return false, "plugin not loaded: " .. err
+	end
+	if file then
+		io.close(file)
+		-- For now, only considering git repos with "main" as the main branch
+		local command = "git -C " .. store_path .. " pull origin main"
+		if not os.execute(command) then
+			return false, "failed to update plugin"
+		end
+	end
+	return true, nil
+end
+
 --- @class SetupOpts
 --- @field dir string | nil
 --- @field plugins PluginSpec[] | nil
 local SetupOpts = {}
+
+--- @class UpdateOpts
+--- @field name string
+local UpdateOpts = {}
 
 M.PluginSpec = PluginSpec
 M.SetupOpts = SetupOpts

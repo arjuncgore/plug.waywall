@@ -17,12 +17,12 @@ local LogLevel = {
 --- @field error fun(self, msg: string)
 local Logger = {}
 
+function Logger:__log_error(msg)
+	error(msg)
+end
+
 function Logger:__log(msg)
-	if self.level == LogLevel.ERROR then
-		error(msg)
-	else
-		print(msg)
-	end
+	print(msg)
 end
 
 function Logger.new()
@@ -51,7 +51,7 @@ end
 
 function Logger:error(msg)
 	if self.level >= LogLevel.ERROR then
-		self:__log(msg)
+		self:__log_error(msg)
 	end
 end
 
