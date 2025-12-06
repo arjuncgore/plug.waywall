@@ -5,8 +5,6 @@ local globals = require("plug.globals")
 
 local M = {}
 
-M.loaded_plugins = {}
-
 --- @type Logger
 Log = log.Logger:new()
 
@@ -39,7 +37,6 @@ local function __setup_dir(dir)
 			Log:error("setup dir: failed to load plugin: " .. err2)
 			goto continue
 		end
-		M.loaded_plugins[#M.loaded_plugins + 1] = spec
 		Log:debug("setup dir: loaded plugin: " .. spec.name)
 		::continue::
 	end
@@ -53,7 +50,6 @@ local function __setup_plugins(plugins)
 			Log:error("setup plugins: failed to load plugin: " .. err)
 			goto continue
 		end
-		M.loaded_plugins[#M.loaded_plugins + 1] = spec
 		Log:debug("setup plugins: loaded plugin: " .. spec.name)
 		::continue::
 	end
@@ -89,19 +85,20 @@ function M.update(opts)
 		return false
 	end
 
+	Log:debug("update end")
 	return true
 end
 
 --- @return boolean
 function M.update_all()
 	Log:debug("update all start")
-	for _, spec in ipairs(M.loaded_plugins) do
-		local success, err = spec:update()
-		if not success then
-			Log:error("update all failed: " .. err)
-			return false
-		end
+	local success, err = plugin.update_all()
+	if not success then
+		Log:error("update all failed: " .. err)
+		return false
 	end
+
+	Log:debug("update all end")
 	return true
 end
 

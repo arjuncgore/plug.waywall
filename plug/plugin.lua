@@ -3,6 +3,8 @@ local utils = require("plug.utils")
 
 local M = {}
 
+M.loaded_plugins = {}
+
 --- @param spec table<string, any>
 --- @return string | nil
 function M.load_from_spec(spec)
@@ -46,6 +48,8 @@ function M.load_from_spec(spec)
 	if pspec.config then
 		pspec.config()
 	end
+
+	M.loaded_plugins[#M.loaded_plugins + 1] = pspec.name
 	return nil
 end
 
@@ -60,6 +64,17 @@ function M.update_from_name(name)
 	local success, err2 = pspec:update()
 	if not success then
 		return false, "failed to update plugin: " .. err2
+	end
+	return true, nil
+end
+
+--- @return boolean, string | nil
+function M.update_all()
+	for _, name in ipairs(M.loaded_plugins) do
+		local success, err = M.update_from_name(name)
+		if not success then
+			return false, "failed to update plugin: " .. err
+		end
 	end
 	return true, nil
 end
