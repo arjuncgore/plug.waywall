@@ -68,18 +68,33 @@ end
 --- @return boolean, string | nil
 function PluginSpec:update()
 	local store_path = globals.PLUG_CONFIG_DIR .. self.name
-	local file, err = io.open(store_path .. "/.check_temp", "w")
+	-- Check if the plugin is a git plugin
+	local file, err = io.open(store_path .. "/.git/.check_temp", "w")
 	if not file and err then
-		return false, "plugin not loaded: " .. err
+		if string.find(err, "No such file or directory") then
+			Log:warn("update: plugin: '" .. self.name .. "' is not a git plugin")
+			return true, nil
+		end
+		return false, "failed to check if plugin is a git plugin: " .. err
 	end
 	if file then
 		io.close(file)
+	end
+	os.remove(store_path .. "/.git/.check_temp")
+
+	local file2, err2 = io.open(store_path .. "/.check_temp", "w")
+	if not file2 and err2 then
+		return false, "plugin not loaded: " .. err2
+	end
+	if file2 then
+		io.close(file2)
 		-- For now, only considering git repos with "main" as the main branch
 		local command = "git -C " .. store_path .. " pull origin main"
 		if not os.execute(command) then
 			return false, "failed to update plugin"
 		end
 	end
+	os.remove(store_path .. "/.check_temp")
 	return true, nil
 end
 
@@ -94,5 +109,6 @@ local UpdateOpts = {}
 
 M.PluginSpec = PluginSpec
 M.SetupOpts = SetupOpts
+M.UpdateOpts = UpdateOpts
 
 return M

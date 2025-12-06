@@ -17,7 +17,7 @@ function M.load_from_spec(spec)
 	end
 
 	local deps = spec.dependencies
-	if deps then
+	if deps and type(deps) == "table" then
 		for _, dep in ipairs(deps) do
 			local err2 = M.load_from_spec(dep)
 			if err2 then
@@ -38,7 +38,7 @@ function M.load_from_spec(spec)
 		end
 	end
 
-	local plugin = utils.Prequire("plug." .. pspec.name .. ".init")
+	local plugin = utils.Prequire(pspec.name .. ".init")
 	if not plugin then
 		return "load plugin: failed to load plugin init"
 	end

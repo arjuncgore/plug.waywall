@@ -2,7 +2,6 @@ local log = require("plug.log")
 local plugin = require("plug.plugin")
 local utils = require("plug.utils")
 local globals = require("plug.globals")
-local types = require("plug.types")
 
 local M = {}
 

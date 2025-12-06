@@ -17,8 +17,8 @@ plug.setup({
 	-- 		url = "https://example.com/author/sample",
 	-- 		name = "sample", -- Optional name for the plugin
 	-- 		config = function()
-	--      -- See plug.sample.init.lua for an example plugin
-	-- 			print(require("plug.sample.init").loaded)
+	--      -- See sample/init.lua for an example plugin
+	-- 			print(require("sample.init").loaded)
 	-- 		end,
 	-- 		enabled = false, -- Optional, set to true to enable the plugin
 	-- 		dependencies = {
